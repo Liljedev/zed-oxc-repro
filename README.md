@@ -10,9 +10,11 @@ The same nested input does not get corrupted when running the `oxlint` CLI with 
 
 The same `source.fixAll.oxc` setup was also tested in VS Code with the official Oxc extension and worked correctly there.
 
+A local patched build of Zed was also tested against this repo and fixed `l3.js` correctly, which strongly suggests the bug was in Zed's edit-merging/application path.
+
 ## Summary
 
-There appear to be three separate behaviors:
+There appear to be four separate behaviors:
 
 1. `oxlint --fix` on the CLI
    It applies one non-overlapping batch of fixes per run. For nested `sort-keys`, this means repeated runs are required.
@@ -23,7 +25,10 @@ There appear to be three separate behaviors:
 3. `source.fixAll.oxc` through the language server in VS Code
    The same files are fixed correctly.
 
-Current conclusion: the practical bug now looks more likely to be in Zed's handling of the returned workspace edit than in `oxc-zed` itself.
+4. `source.fixAll.oxc` through a locally patched Zed build
+   The same files are fixed correctly.
+
+Current conclusion: the bug was in Zed's handling of the returned workspace edit rather than in `oxc-zed`.
 
 ## Versions
 
@@ -135,6 +140,31 @@ Observed result:
 - no corruption was observed
 
 This comparison is the main reason the current suspicion has shifted away from `oxc-zed` and toward Zed's application of the returned workspace edit.
+
+## Reproducing in a patched local Zed build
+
+A local source build of Zed with a patch to its LSP edit-merging/application logic was tested against this repo.
+
+Observed result:
+
+- `l3.js` is fixed correctly on save
+- no corruption was observed
+- the resulting file content is:
+
+```js
+export const obj = {
+  a: {
+    c: {
+      e: 1,
+      f: 1,
+    },
+    d: 1,
+  },
+  b: 1,
+};
+```
+
+This provides a strong confirmation that the practical bug is in Zed's edit handling, not in the Oxc Zed extension wrapper.
 
 ### `l1.js`
 
@@ -419,9 +449,11 @@ In other words:
   likely working as currently designed, even if the one-level-per-run behavior may be surprising
 - `source.fixAll.oxc` in VS Code:
   works correctly for this repro
-- `source.fixAll.oxc` in Zed:
+- patched local Zed:
+  works correctly for this repro
+- `source.fixAll.oxc` in stock Zed:
   corrupts the file for this repro
 - `oxc-zed`:
   likely not the root cause
 - `zed`:
-  now looks like the most likely repo to report the practical bug in
+  is the repo where the practical bug lives
