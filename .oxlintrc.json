@@ -2,7 +2,9 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": null,
   "categories": {},
-  "rules": {},
+  "rules": {
+    "sort-keys": "warn"
+  },
   "settings": {
     "jsx-a11y": {
       "polymorphicPropName": null,
