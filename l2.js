@@ -1,7 +1,7 @@
 export const obj = {
-  b: "b",
+  b: 1,
   a: {
-    d: "d",
-    c: "c",
+    d: 1,
+    c: 1,
   },
 };
