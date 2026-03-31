@@ -107,6 +107,17 @@ This matches the current Oxc editor setup docs for VS Code.
 
 Open this folder in Zed with the Oxc extension enabled. Then save each file and let the configured `source.fixAll.oxc` action run.
 
+### Relevant Zed save log
+
+When saving `l3.js`, Zed logs the following:
+
+```text
+2026-03-31T11:32:17+02:00 INFO  [project::lsp_store] Applying edits [(Anchor { timestamp: Lamport {<local>: 1}, offset: 23, bias: Right, buffer_id: Some(BufferId(4294967980)) }..Anchor { timestamp: Lamport {<local>: 1}, offset: 31, bias: Left, buffer_id: Some(BufferId(4294967980)) }, ""), (Anchor { timestamp: Lamport {<local>: 1}, offset: 67, bias: Right, buffer_id: Some(BufferId(4294967980)) }..Anchor { timestamp: Lamport {<local>: 1}, offset: 77, bias: Left, buffer_id: Some(BufferId(4294967980)) }, "      e: 1,\n    },\n  },\n  b: 1c: {\n      f: 1,\n      e: 1,\n    },\n    d: 1e: 1,\n      f: 1")]. Content: "export const obj = {\n  b: 1,\n  a: {\n    d: 1,\n    c: {\n      f: 1,\n      e: 1,\n    },\n  },\n};\n"
+2026-03-31T11:32:17+02:00 INFO  [project::lsp_store] Applied edits. New Content: "export const obj = {\n  a: {\n    d: 1,\n    c: {\n      f: 1,\n      e: 1,\n    },\n  },\n  b: 1c: {\n      f: 1,\n      e: 1,\n    },\n    d: 1e: 1,\n      f: 1,\n    },\n  },\n};\n"
+```
+
+This is the strongest evidence collected so far because the malformed replacement text is already visible in Zed's logged edit application.
+
 ## Reproducing in VS Code
 
 Open this folder in VS Code or Cursor with the Oxc extension enabled.
