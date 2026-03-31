@@ -94,7 +94,8 @@ Recommended extension:
 
 Open this folder in Zed with the Oxc extension enabled, then save the files below.
 
-### `l1.js`
+<details>
+<summary><code>l1.js</code></summary>
 
 Input:
 
@@ -118,7 +119,10 @@ export const obj = {
 };
 ```
 
-### `l2.js`
+</details>
+
+<details>
+<summary><code>l2.js</code></summary>
 
 Input:
 
@@ -157,6 +161,8 @@ export const obj = {
   b: 1,
 };
 ```
+
+</details>
 
 ### `l3.js`
 
