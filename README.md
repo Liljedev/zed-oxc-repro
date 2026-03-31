@@ -8,17 +8,22 @@ This repo reproduces a bug when using the Oxc Zed extension with:
 
 The same nested input does not get corrupted when running the `oxlint` CLI with `--fix`. Instead, the CLI applies only one non-overlapping batch of fixes per invocation and converges after multiple passes.
 
+The same `source.fixAll.oxc` setup was also tested in VS Code with the official Oxc extension and worked correctly there.
+
 ## Summary
 
-There appear to be two separate behaviors:
+There appear to be three separate behaviors:
 
 1. `oxlint --fix` on the CLI
    It applies one non-overlapping batch of fixes per run. For nested `sort-keys`, this means repeated runs are required.
 
 2. `source.fixAll.oxc` through the language server in Zed
-   It appears to return multiple overlapping text edits in a single `WorkspaceEdit`. With nested `sort-keys`, those edits use stale offsets after earlier edits shift the document, which corrupts the file.
+   Saving `l2.js` and `l3.js` corrupts the file.
 
-Current conclusion: this looks like an `oxlint` LSP `fixAll` issue, not an `oxc-zed` wrapper issue.
+3. `source.fixAll.oxc` through the language server in VS Code
+   The same files are fixed correctly.
+
+Current conclusion: the practical bug now looks more likely to be in Zed's handling of the returned workspace edit than in `oxc-zed` itself.
 
 ## Versions
 
@@ -113,11 +118,12 @@ Then:
 3. open `l2.js` or `l3.js`
 4. save the file so `editor.codeActionsOnSave` runs `source.fixAll.oxc`
 
-Expected outcome if the bug is in `oxlint` LSP rather than Zed:
+Observed result:
 
-- the same corruption should occur in VS Code as in Zed
-- if it does, that strongly suggests this is an `oxlint` language-server bug
-- if it does not, then there may still be an editor-client difference worth investigating
+- `l2.js` and `l3.js` are fixed correctly
+- no corruption was observed
+
+This comparison is the main reason the current suspicion has shifted away from `oxc-zed` and toward Zed's application of the returned workspace edit.
 
 ### `l1.js`
 
@@ -349,7 +355,13 @@ The Zed extension code appears to be a thin wrapper around `oxlint --lsp`:
 
 That makes the likely bug location the `oxlint` language-server `fixAll` path, not the Zed extension itself.
 
-## Likely root cause in `oxlint`
+After also testing the same scenario in VS Code, the more precise conclusion is:
+
+- `oxc-zed` still does not look like the root cause
+- the difference is more likely between how Zed and VS Code apply the returned `WorkspaceEdit`
+- if both clients are requesting the same `source.fixAll.oxc` action, then the likely fault is in Zed itself or in an editor-client assumption Zed does not currently match
+
+## Relevant `oxlint` context
 
 In the `oxc` repo, the LSP `fixAll` implementation collects multiple fixes into one `WorkspaceEdit`.
 
@@ -362,9 +374,11 @@ There is already a comment in the code acknowledging the problem:
 // see oxc-project/oxc#10422
 ```
 
-That matches the observed corruption exactly: nested `sort-keys` replacements are individually reasonable, but later edits are applied against offsets that were valid only before earlier edits moved the surrounding text.
+That still looks relevant because nested `sort-keys` replacements can interfere with later ranges.
 
 By contrast, the CLI fixer sorts fixes by span and skips overlapping edits within a run, which explains why repeated `--fix` invocations converge without corruption.
+
+However, because VS Code applies the same `source.fixAll.oxc` result correctly, this repo no longer points cleanly to `oxlint` as the primary culprit.
 
 ## Relation to `oxc` issue `#10422` and PR `#10428`
 
@@ -392,20 +406,11 @@ In other words:
 
 - `oxlint --fix`:
   likely working as currently designed, even if the one-level-per-run behavior may be surprising
-- `source.fixAll.oxc` in LSP:
-  likely buggy for nested `sort-keys` because it batches overlapping edits into a single workspace edit
+- `source.fixAll.oxc` in VS Code:
+  works correctly for this repro
+- `source.fixAll.oxc` in Zed:
+  corrupts the file for this repro
 - `oxc-zed`:
   likely not the root cause
-
-## Suggested upstream issue framing
-
-Possible issue title:
-
-`oxlint LSP source.fixAll.oxc returns overlapping text edits for nested sort-keys and corrupts files in Zed`
-
-Possible issue notes:
-
-- reproduction is minimal and deterministic with nested object literals
-- CLI `--fix` does not corrupt the file
-- corruption appears only through LSP `source.fixAll.oxc`
-- likely fix area is the `fixAll` edit batching strategy in the language server
+- `zed`:
+  now looks like the most likely repo to report the practical bug in
