@@ -26,12 +26,6 @@ Conclusion: the practical bug is in Zed's LSP edit handling, not in `oxc-zed` or
 - `oxfmt`: `0.42.0`
 - `pnpm`: `10.32.1`
 
-Additional local analysis used these cloned repos:
-
-- `oxc`: `af72b802be621fbea6e6ca1fbfc9a685c978b6fc`
-- `oxc-zed`: `9b82cff67c223bf929be40489e36faafa536e71c`
-- this repro repo: `9118bb677f238988e189946fa325dcabe749758e`
-
 ## Files
 
 - `l1.js`: one unsorted object level
