@@ -38,6 +38,8 @@ Additional local analysis was done against these cloned repos:
 - `l2.js`: two nested unsorted object levels
 - `l3.js`: three nested unsorted object levels
 - `.zed/settings.json`: config that triggers `source.fixAll.oxc`
+- `.vscode/settings.json`: config that triggers `source.fixAll.oxc` in VS Code
+- `.vscode/extensions.json`: recommends the official Oxc VS Code extension
 
 ## Zed configuration
 
@@ -76,9 +78,46 @@ This repo uses the following Zed settings:
 pnpm install
 ```
 
+## VS Code setup
+
+This repo also includes a VS Code workspace configuration so the same LSP `fixAll` path can be tested outside Zed.
+
+Recommended extension:
+
+- `oxc.oxc-vscode`
+
+Workspace setting:
+
+```json
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "always"
+  }
+}
+```
+
+This matches the current Oxc editor setup docs for VS Code.
+
 ## Reproducing the Zed corruption
 
 Open this folder in Zed with the Oxc extension enabled. Then save each file and let the configured `source.fixAll.oxc` action run.
+
+## Reproducing in VS Code
+
+Open this folder in VS Code or Cursor with the Oxc extension enabled.
+
+Then:
+
+1. install dependencies with `pnpm install`
+2. make sure the workspace recommendation `oxc.oxc-vscode` is installed
+3. open `l2.js` or `l3.js`
+4. save the file so `editor.codeActionsOnSave` runs `source.fixAll.oxc`
+
+Expected outcome if the bug is in `oxlint` LSP rather than Zed:
+
+- the same corruption should occur in VS Code as in Zed
+- if it does, that strongly suggests this is an `oxlint` language-server bug
+- if it does not, then there may still be an editor-client difference worth investigating
 
 ### `l1.js`
 
